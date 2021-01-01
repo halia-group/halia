@@ -1,10 +1,14 @@
 package channel
 
+// 每一个handler都有一个context
 type HandlerContext interface {
+	OutboundInvoker
+
 	Channel() Channel
+	Name() string
+	Handler() Handler
 	Pipeline() Pipeline
-	Write(msg interface{}) error
-	WriteAndFlush(msg interface{}) error
-	Flush() error
-	Close() error
+	FireChannelRead(msg interface{})
+	FireChannelActive()
+	FireChannelInActive()
 }
