@@ -3,6 +3,7 @@ package bootstrap
 import (
 	log "github.com/sirupsen/logrus"
 	"halia/channel"
+	"io"
 	"net"
 )
 
@@ -24,6 +25,7 @@ func (server *Server) Listen(network, addr string) (err error) {
 	var (
 		conn net.Conn
 	)
+	server.log.WithField("network", network).WithField("addr", addr).Infoln("started")
 	for {
 		conn, err = server.listener.Accept()
 		if err != nil {
@@ -44,13 +46,45 @@ func (server *Server) onConnect(conn net.Conn) {
 		return nil
 	})
 
-	// todo: 暂时不读取
-	select {}
+	var (
+		buf = make([]byte, 4096)
+	)
+	for {
+		n, err := c.Channel().Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			server.onReadError(c, err)
+		}
+		server.onRead(c, buf[:n])
+	}
 }
 
 func (server *Server) onDisconnect(c channel.HandlerContext) {
 	c.Pipeline().IterateInbound(func(handler channel.InboundHandler) error {
 		handler.ChannelInActive(c)
+		return nil
+	})
+}
+
+func (server *Server) onReadError(c channel.HandlerContext, err error) {
+	c.Pipeline().IterateInbound(func(handler channel.InboundHandler) error {
+		handler.ErrorCaught(c, err)
+		return nil
+	})
+}
+
+func (server *Server) onRead(c channel.HandlerContext, data []byte) {
+	var (
+		msg interface{} = data
+		err error
+	)
+	c.Pipeline().IterateInbound(func(handler channel.InboundHandler) error {
+		msg, err = handler.ChannelRead(c, msg)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 }
