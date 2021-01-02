@@ -1,7 +1,5 @@
 package channel
 
-import log "github.com/sirupsen/logrus"
-
 type Pipeline interface {
 	InboundInvoker
 	OutboundInvoker
@@ -9,6 +7,8 @@ type Pipeline interface {
 	AddIn(name string, handler Handler)
 	AddOut(name string, handler Handler)
 	Channel() Channel
+	InNames() []string
+	OutNames() []string
 }
 
 type DefaultPipeline struct {
@@ -23,14 +23,21 @@ func NewDefaultPipeline(channel Channel) *DefaultPipeline {
 	}
 	p.in = &DefaultHandlerContext{
 		pipeline: p,
-		name:     "HeadContext",
+		name:     "InHeadContext",
 		handler:  NewHeadInboundHandler(p),
 	}
-	p.out = &DefaultHandlerContext{
+	outTailCtx := &DefaultHandlerContext{
 		pipeline: p,
-		name:     "TailContext",
+		name:     "OutTailContext",
 		handler:  NewTailOutboundHandler(p),
 	}
+	outHeadCtx := &DefaultHandlerContext{
+		next:     outTailCtx,
+		pipeline: p,
+		name:     "OutHeadContext",
+		handler:  NewHeadOutboundHandler(p),
+	}
+	p.out = outHeadCtx
 	return p
 }
 
@@ -77,71 +84,37 @@ func (p *DefaultPipeline) AddIn(name string, handler Handler) {
 }
 
 // 插入到出站链头部
+// 头节点必须是DefaultOutboundHandler, 尾结点必须是TailOutboundHandler
 func (p *DefaultPipeline) AddOut(name string, handler Handler) {
 	newCtx := &DefaultHandlerContext{
 		pipeline: p,
 		name:     name,
 		handler:  handler,
 	}
-	newCtx.next = p.out
-	p.out = newCtx
+	newCtx.next = p.out.next
+	p.out.next = newCtx
 }
 
 func (p *DefaultPipeline) Channel() Channel {
 	return p.channel
 }
 
-// 第一个入站处理器
-type HeadInboundHandler struct {
-	pipeline *DefaultPipeline
-}
-
-func NewHeadInboundHandler(pipeline *DefaultPipeline) *HeadInboundHandler {
-	return &HeadInboundHandler{pipeline: pipeline}
-}
-
-func (p *HeadInboundHandler) ErrorCaught(c HandlerContext, err error) {
-	c.FireErrorCaught(err)
-}
-
-func (p *HeadInboundHandler) ChannelActive(c HandlerContext) {
-	c.FireChannelActive()
-}
-
-func (p *HeadInboundHandler) ChannelInActive(c HandlerContext) {
-	c.FireChannelInActive()
-}
-
-func (p *HeadInboundHandler) ChannelRead(c HandlerContext, msg interface{}) {
-	c.FireChannelRead(msg)
-}
-
-// 最后一个出站处理器
-type TailOutboundHandler struct {
-	pipeline *DefaultPipeline
-	log      *log.Entry
-}
-
-func NewTailOutboundHandler(pipeline *DefaultPipeline) *TailOutboundHandler {
-	return &TailOutboundHandler{pipeline: pipeline, log: log.WithField("component", "TailOutboundHandler")}
-}
-
-func (p *TailOutboundHandler) ErrorCaught(c HandlerContext, err error) {
-	p.log.Warnln("unhandled error.", err)
-}
-
-func (p *TailOutboundHandler) Write(c HandlerContext, msg interface{}) error {
-	buf, ok := msg.([]byte)
-	if !ok {
-		p.log.Warnln("TailOutboundHandler.Write called with wrong msg type")
-		return nil
+func (p *DefaultPipeline) InNames() []string {
+	ptr := p.in
+	names := make([]string, 0)
+	for ptr != nil {
+		names = append(names, ptr.name)
+		ptr = ptr.next
 	}
-	if _, err := c.Channel().Write(buf); err != nil {
-		return err
-	}
-	return nil
+	return names
 }
 
-func (p *TailOutboundHandler) Flush(c HandlerContext) error {
-	return c.Channel().Flush()
+func (p *DefaultPipeline) OutNames() []string {
+	ptr := p.out
+	names := make([]string, 0)
+	for ptr != nil {
+		names = append(names, ptr.name)
+		ptr = ptr.next
+	}
+	return names
 }

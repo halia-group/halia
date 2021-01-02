@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	log "github.com/sirupsen/logrus"
+	"halia/channel"
 	"net"
 )
 
@@ -31,6 +32,17 @@ func (server *Server) Listen(network, addr string) error {
 	}
 }
 
+// todo: 如何在读取失败的时候返回
 func (server *Server) onConnect(conn net.Conn) {
+	c := server.options.ChannelFactory(conn)
+	defer server.onDisconnect(c)
 
+	c.Pipeline().FireChannelActive()
+	// 数据包读取由入站handler进行轮询读取
+	c.Pipeline().FireChannelRead(nil)
+}
+
+// 断开连接
+func (server *Server) onDisconnect(c channel.Channel) {
+	c.Pipeline().FireChannelInActive()
 }

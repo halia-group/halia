@@ -39,15 +39,24 @@ func (c *DefaultHandlerContext) FireErrorCaught(err error) {
 	handler.ErrorCaught(next, err)
 }
 
+// 如果当前是InboundHandler，则调用pipeline的write开始出站流程
 func (c *DefaultHandlerContext) Write(msg interface{}) error {
+	if _, ok := c.handler.(InboundHandler); ok {
+		return c.pipeline.Write(msg)
+	}
+
 	var (
-		prev    = c.findNextContext()
-		handler = prev.Handler().(OutboundHandler)
+		next    = c.findNextContext()
+		handler = next.Handler().(OutboundHandler)
 	)
-	return handler.Write(prev, msg)
+	return handler.Write(next, msg)
 }
 
 func (c *DefaultHandlerContext) Flush() error {
+	if _, ok := c.handler.(InboundHandler); ok {
+		return c.pipeline.Flush()
+	}
+
 	var (
 		prev    = c.findNextContext()
 		handler = prev.Handler().(OutboundHandler)
@@ -56,6 +65,10 @@ func (c *DefaultHandlerContext) Flush() error {
 }
 
 func (c *DefaultHandlerContext) WriteAndFlush(msg interface{}) error {
+	if _, ok := c.handler.(InboundHandler); ok {
+		return c.pipeline.WriteAndFlush(msg)
+	}
+
 	var (
 		prev    = c.findNextContext()
 		handler = prev.Handler().(OutboundHandler)
