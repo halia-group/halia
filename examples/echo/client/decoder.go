@@ -20,7 +20,7 @@ func (d *LineDelimiterFrameDecoder) ChannelInActive(c channel.HandlerContext) {
 	c.FireChannelInActive()
 }
 
-func (d *LineDelimiterFrameDecoder) ChannelRead(c channel.HandlerContext, msg interface{}) {
+func (d *LineDelimiterFrameDecoder) ChannelRead(c channel.HandlerContext, _ interface{}) {
 	var br = bufio.NewReader(c.Channel())
 	for {
 		line, _, err := br.ReadLine()
