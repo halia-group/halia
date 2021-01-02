@@ -11,6 +11,7 @@ type Channel interface {
 	io.ReadWriteCloser
 	util.AttributeMap
 
+	Flush() error
 	Id() channelid.ChannelId
 	LocalAddr() net.Addr
 	RemoteAddr() net.Addr
@@ -22,6 +23,15 @@ type DefaultChannel struct {
 	conn     net.Conn
 	id       channelid.ChannelId
 	pipeline Pipeline
+}
+
+func NewDefaultChannel(conn net.Conn) *DefaultChannel {
+	c := &DefaultChannel{
+		conn: conn,
+		id:   channelid.New(),
+	}
+	c.pipeline = NewDefaultPipeline(c)
+	return c
 }
 
 func (c *DefaultChannel) Read(p []byte) (n int, err error) {
@@ -49,5 +59,10 @@ func (c *DefaultChannel) RemoteAddr() net.Addr {
 }
 
 func (c *DefaultChannel) Pipeline() Pipeline {
-	panic("implement me")
+	return c.pipeline
+}
+
+// flush output, only working with buffered writer
+func (c *DefaultChannel) Flush() error {
+	return nil
 }
