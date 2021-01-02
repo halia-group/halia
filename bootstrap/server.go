@@ -4,7 +4,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"halia/channel"
 	"net"
+	"os"
 )
+
+type ServerOptions struct {
+	ChannelFactory func(conn net.Conn) channel.Channel
+}
 
 type Server struct {
 	listener net.Listener
@@ -13,7 +18,7 @@ type Server struct {
 }
 
 func NewServer(options *ServerOptions) *Server {
-	return &Server{options: options, log: log.WithField("component", "server")}
+	return &Server{options: options, log: log.WithField("component", "server").WithField("pid", os.Getpid())}
 }
 
 func (server *Server) Listen(network, addr string) error {
@@ -32,7 +37,6 @@ func (server *Server) Listen(network, addr string) error {
 	}
 }
 
-// todo: 如何在读取失败的时候返回
 func (server *Server) onConnect(conn net.Conn) {
 	c := server.options.ChannelFactory(conn)
 	defer server.onDisconnect(c)
