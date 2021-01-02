@@ -1,161 +1,119 @@
 @startuml
-
-namespace channel {
-    interface Id {
-        + AsShortText() string
-        + AsLongText() string
-    }
-
-    class DefaultId implements Id {
-        - {static} PROCESS_ID_LEN: int
-        - {static} SEQUENCE_LEN: int
-        - {static} TIMESTAMP_LEN: long
-        - {static} RANDOM_LEN: int
-        --
-        - machineId: []byte
-        - processId: int
-        - sequence: int
-        --
-        - data: []byte
-        - shortValue: string
-        - longValue: string
-        --
-        + DefaultId()
-        --
-        + AsShortText() string
-        + AsLongText() string
-    }
-
-    interface ChannelPipeline {
-        + Add(handler ChannelHandler)
-    }
-
-    class DefaultChannelPipeline implements ChannelPipeline {
-        - inboundChannelHandlers: []ChannelInboundHandler
-        - outboundChannelHandlers: []ChannelOutboundHandler
-        --
-        + Add(handler ChannelHandler)
-    }
-
-    ChannelInboundHandler *-- DefaultChannelPipeline
-    ChannelOutboundHandler *-- DefaultChannelPipeline
-
-    interface Channel extends io.ReadWriteCloser {
-        + Id(): Id
-        + LocalAddr() net.Addr
-        + RemoteAddr() net.Addr
-        + Pipeline() ChannelPipeline
-        + WriteAndFlush(buf []byte) error
-        + Flush() error
-    }
-
-    Id *-- Channel
-    ChannelPipeline *-- Channel
-
-    class DefaultChannel implements Channel {
-        - id: Id
-        - conn: net.Conn
-        - br: *bufio.Reader
-        - bw: *bufio.Writer
-        - pipeline: ChannelPipeline
-        --
-        + Id(): Id
-        + LocalAddr(): net.Addr
-        + RemoteAddr(): net.Addr
-        + Pipeline(): ChannelPipeline
-        + WriteAndFlush(buf []byte) error
-    }
-
-    interface ChannelHandlerContext extends util.AttributeMap {
-        + Channel(): Channel
-        + Write(msg interface{}) error
-        + WriteAndFlush(msg interface{}) error
-        + Flush() error
-        + Close() error
-    }
-    Channel *-- ChannelHandlerContext
-
-    class DefaultChannelHandlerContext implements ChannelHandlerContext {
-        - channel: Channel
-        - attrMap: DefaultAttributeMap
-        --
-        + Channel(): Channel
-        + Write(msg interface{}) error
-        + WriteAndFlush(msg interface{}) error
-        + Flush() error
-        + Close() error
-    }
-
-    util.DefaultAttributeMap *-- DefaultChannelHandlerContext
-
-    interface ChannelHandler {
-        + ErrorCaught(c ChannelHandlerContext, err error)
-    }
-
-    interface ChannelInboundHandler extends ChannelHandler {
-        + ChannelActive(c ChannelHandlerContext)
-        + ChannelInActive(c ChannelHandlerContext)
-        + ChannelRead(c ChannelHandlerContext, msg interface{})
-        + ErrorCaught(c ChannelHandlerContext, err error)
-    }
-
-    interface ChannelOutboundHandler extends ChannelHandler {
-        + Write(c ChannelHandlerContext, msg interface{}) error
-        + Flush(c ChannelHandlerContext) error
-    }
+interface channel.channelid.ChannelId {
+    + AsShortText()
+    + AsLongText()
+}
+class DefaultId implements channel.channelid.ChannelId {
+    - data: []byte
+    - shortValue: string
+    - longValue: string
+    --
+    + AsShortText()
+    + AsLongText()
 }
 
-namespace handler {
-    namespace codec {
-        class ByteToMessageDecoder implements channel.ChannelInboundHandler {
-            + ChannelActive(c ChannelHandlerContext)
-            + ChannelInActive(c ChannelHandlerContext)
-            + ChannelRead(c ChannelHandlerContext, msg interface{})
-            + ErrorCaught(c ChannelHandlerContext, err error)
-            --
-            + Decode(c ChannelHandlerContext, r io.Reader, out []interface{}) error
-        }
-
-        class MessageToByteEncoder implements channel.ChannelOutboundHandler {
-            + Write(c ChannelHandlerContext, msg interface{}) error
-            + Flush(c ChannelHandlerContext) error
-            --
-            + Encode(c ChannelHandlerContext, msg interface{}, w io.Writer) error
-        }
-    }
+interface channel.Handler {
+    + ErrorCaught(c HandlerContext, err error)
 }
 
-namespace bootstrap {
-    class Server {
-        - listener: net.Listener
-        - options: ServerOptions
-        --
-        + Listen(network, addr string) error
-    }
-
-    class ServerOptions {
-        + ChannelFactory: func(net.Conn) channel.Channel
-        + HandlerContextFactory: func(channel2 channel.Channel) channel.HandlerContext
-    }
+interface channel.InboundHandler extends channel.Handler  {
+    + ChannelActive(c HandlerContext)
+    + ChannelInActive(c HandlerContext)
+    + ChannelRead(c HandlerContext, msg interface{}) error
 }
 
-namespace util {
-    interface AttributeMap {
-        + SetAttribute(key string, val interface{})
-        + GetAttribute(key string) interface{}
-        + HasAttribute(key string) bool
-        + GetStringAttribute(key string) string
-        + GetBoolAttribute(key string) bool
-    }
-    class DefaultAttributeMap implements AttributeMap {
-        - attrMap: map[string] interface{}
-        --
-        + SetAttribute(key string, val interface{})
-        + GetAttribute(key string) interface{}
-        + HasAttribute(key string) bool
-        + GetStringAttribute(key string) string
-        + GetBoolAttribute(key string) bool
-    }
+interface channel.OutboundHandler extends channel.Handler {
+    + Write(c HandlerContext, msg interface{}) error
+    + Flush(c HandlerContext) error
 }
 
+interface channel.InboundInvoker {
+    + FireChannelActive()
+    + FireChannelInActive()
+    + FireChannelRead(msg interface{})
+    + FireErrorCaught(err error)
+}
+
+interface channel.OutboundInvoker {
+    + Write(msg interface{}) error
+    + Flush() error
+    + WriteAndFlush(msg interface{}) error
+}
+
+interface channel.HandlerContext extends channel.InboundInvoker, channel.OutboundInvoker  {
+    + Channel() Channel
+    + Name() string
+    + Handler() Handler
+    + Pipeline() Pipeline
+    + ErrorCaught(err error)
+}
+
+interface channel.Pipeline extends channel.InboundInvoker, channel.OutboundInvoker {
+    + AddIn(name string, handler Handler)
+    + AddOut(name string, handler Handler)
+    + First() Handler
+    + FirstContext() HandlerContext
+    + Last() Handler
+    + LastContext() HandlerContext
+    + Channel() Channel
+    + Names() []string
+}
+
+interface channel.Channel extends util.AttributeMap {
+    io.ReadWriteCloser
+    + Id() channelid.ChannelId
+    + LocalAddr() net.Addr
+    + RemoteAddr() net.Addr
+    + Pipeline() Pipeline
+}
+
+interface util.AttributeMap {
+    + SetAttribute(key string, val interface{})
+    + GetAttribute(key string) interface{}
+    + GetBoolAttribute(key string) bool
+    + GetStringAttribute(key string) string
+    + HasAttribute(key string) bool
+}
+
+class util.DefaultAttributeMap implements util.AttributeMap {
+    - attrs: map[string] interface{}
+    --
+    + SetAttribute(key string, val interface{})
+    + GetAttribute(key string) interface{}
+    + GetBoolAttribute(key string) bool
+    + GetStringAttribute(key string) string
+    + HasAttribute(key string) bool
+}
+
+class channel.DefaultChannel extends util.DefaultAttributeMap implements channel.Channel {
+    - conn     net.Conn
+    - id       channelid.ChannelId
+    - pipeline Pipeline
+    --
+    + Id() channelid.ChannelId
+    + LocalAddr() net.Addr
+    + RemoteAddr() net.Addr
+    + Pipeline() Pipeline
+}
+
+class channel.DefaultHandlerContext implements channel.HandlerContext {
+    - next: channel.HandlerContext
+    - prev: channel.HandlerContext
+    - pipeline: channel.Pipeline
+    - name: string
+}
+
+channel.Pipeline *-- channel.DefaultHandlerContext
+channel.DefaultHandlerContext o-- channel.DefaultPipeline
+class channel.HeadContext extends channel.DefaultHandlerContext {
+}
+
+class channel.TailContext extends channel.DefaultHandlerContext {
+}
+
+class channel.DefaultPipeline implements channel.Pipeline {
+    - in: *channel.DefaultHandlerContext
+    - out: *channel.DefaultHandlerContext
+    - channel: channel.Channel
+}
 @enduml

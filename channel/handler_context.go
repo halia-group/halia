@@ -1,14 +1,12 @@
 package channel
 
-// 每一个handler都有一个context
 type HandlerContext interface {
+	InboundInvoker
 	OutboundInvoker
 
 	Channel() Channel
 	Name() string
 	Handler() Handler
 	Pipeline() Pipeline
-	FireChannelRead(msg interface{})
-	FireChannelActive()
-	FireChannelInActive()
+	ErrorCaught(err error)
 }
