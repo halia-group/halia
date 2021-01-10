@@ -10,5 +10,5 @@ type InboundInvoker interface {
 	FireChannelActive()
 	FireChannelInActive()
 	FireChannelRead(msg interface{})
-	FireErrorCaught(err error)
+	FireOnError(err error)
 }

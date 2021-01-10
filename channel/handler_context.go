@@ -8,5 +8,5 @@ type HandlerContext interface {
 	Name() string
 	Handler() Handler
 	Pipeline() Pipeline
-	ErrorCaught(err error)
+	OnError(err error)
 }

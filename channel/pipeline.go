@@ -4,24 +4,24 @@ type Pipeline interface {
 	InboundInvoker
 	OutboundInvoker
 
-	AddIn(name string, handler Handler)
-	AddOut(name string, handler Handler)
+	AddInbound(name string, handler Handler)
+	AddOutbound(name string, handler Handler)
 	Channel() Channel
-	InNames() []string
-	OutNames() []string
+	InboundNames() []string
+	OutboundNames() []string
 }
 
 type DefaultPipeline struct {
-	in      *DefaultHandlerContext // 入站链
-	out     *DefaultHandlerContext // 出站链
-	channel Channel
+	inbound  *DefaultHandlerContext // 入站链
+	outbound *DefaultHandlerContext // 出站链
+	channel  Channel
 }
 
 func NewDefaultPipeline(channel Channel) *DefaultPipeline {
 	p := &DefaultPipeline{
 		channel: channel,
 	}
-	p.in = &DefaultHandlerContext{
+	p.inbound = &DefaultHandlerContext{
 		pipeline: p,
 		name:     "InHeadContext",
 		handler:  NewHeadInboundHandler(p),
@@ -37,46 +37,46 @@ func NewDefaultPipeline(channel Channel) *DefaultPipeline {
 		name:     "OutHeadContext",
 		handler:  NewHeadOutboundHandler(p),
 	}
-	p.out = outHeadCtx
+	p.outbound = outHeadCtx
 	return p
 }
 
 func (p *DefaultPipeline) FireChannelActive() {
-	p.in.FireChannelActive()
+	p.inbound.FireChannelActive()
 }
 
 func (p *DefaultPipeline) FireChannelInActive() {
-	p.in.FireChannelInActive()
+	p.inbound.FireChannelInActive()
 }
 
 func (p *DefaultPipeline) FireChannelRead(msg interface{}) {
-	p.in.FireChannelRead(msg)
+	p.inbound.FireChannelRead(msg)
 }
 
-func (p *DefaultPipeline) FireErrorCaught(err error) {
-	p.in.FireErrorCaught(err)
+func (p *DefaultPipeline) FireOnError(err error) {
+	p.inbound.FireOnError(err)
 }
 
 func (p *DefaultPipeline) Write(msg interface{}) error {
-	return p.out.Write(msg)
+	return p.outbound.Write(msg)
 }
 
 func (p *DefaultPipeline) Flush() error {
-	return p.out.Flush()
+	return p.outbound.Flush()
 }
 
 func (p *DefaultPipeline) WriteAndFlush(msg interface{}) error {
-	return p.out.WriteAndFlush(msg)
+	return p.outbound.WriteAndFlush(msg)
 }
 
 // 插入到入站链末尾
-func (p *DefaultPipeline) AddIn(name string, handler Handler) {
+func (p *DefaultPipeline) AddInbound(name string, handler Handler) {
 	newCtx := &DefaultHandlerContext{
 		pipeline: p,
 		name:     name,
 		handler:  handler,
 	}
-	currentCtx := p.in
+	currentCtx := p.inbound
 	for currentCtx.next != nil {
 		currentCtx = currentCtx.next
 	}
@@ -85,22 +85,22 @@ func (p *DefaultPipeline) AddIn(name string, handler Handler) {
 
 // 插入到出站链头部
 // 头节点必须是DefaultOutboundHandler, 尾结点必须是TailOutboundHandler
-func (p *DefaultPipeline) AddOut(name string, handler Handler) {
+func (p *DefaultPipeline) AddOutbound(name string, handler Handler) {
 	newCtx := &DefaultHandlerContext{
 		pipeline: p,
 		name:     name,
 		handler:  handler,
 	}
-	newCtx.next = p.out.next
-	p.out.next = newCtx
+	newCtx.next = p.outbound.next
+	p.outbound.next = newCtx
 }
 
 func (p *DefaultPipeline) Channel() Channel {
 	return p.channel
 }
 
-func (p *DefaultPipeline) InNames() []string {
-	ptr := p.in
+func (p *DefaultPipeline) InboundNames() []string {
+	ptr := p.inbound
 	names := make([]string, 0)
 	for ptr != nil {
 		names = append(names, ptr.name)
@@ -109,8 +109,8 @@ func (p *DefaultPipeline) InNames() []string {
 	return names
 }
 
-func (p *DefaultPipeline) OutNames() []string {
-	ptr := p.out
+func (p *DefaultPipeline) OutboundNames() []string {
+	ptr := p.outbound
 	names := make([]string, 0)
 	for ptr != nil {
 		names = append(names, ptr.name)

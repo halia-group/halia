@@ -31,12 +31,12 @@ func (c *DefaultHandlerContext) FireChannelRead(msg interface{}) {
 	handler.ChannelRead(next, msg)
 }
 
-func (c *DefaultHandlerContext) FireErrorCaught(err error) {
+func (c *DefaultHandlerContext) FireOnError(err error) {
 	var (
 		next    = c.findNextContext()
 		handler = next.Handler().(InboundHandler)
 	)
-	handler.ErrorCaught(next, err)
+	handler.OnError(next, err)
 }
 
 // 如果当前是InboundHandler，则调用pipeline的write开始出站流程
@@ -95,12 +95,12 @@ func (c *DefaultHandlerContext) Pipeline() Pipeline {
 	return c.pipeline
 }
 
-func (c *DefaultHandlerContext) ErrorCaught(err error) {
+func (c *DefaultHandlerContext) OnError(err error) {
 	var (
 		next    = c.findNextContext()
 		handler = next.Handler().(InboundHandler)
 	)
-	handler.ErrorCaught(next, err)
+	handler.OnError(next, err)
 }
 
 func (c *DefaultHandlerContext) findNextContext() *DefaultHandlerContext {

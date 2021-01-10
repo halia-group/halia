@@ -18,7 +18,7 @@ func NewEchoClientHandler() *EchoClientHandler {
 	}
 }
 
-func (p *EchoClientHandler) ErrorCaught(c channel.HandlerContext, err error) {
+func (p *EchoClientHandler) OnError(c channel.HandlerContext, err error) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Warnln("error caught", err)
 }
 
@@ -28,8 +28,8 @@ func (p *EchoClientHandler) ChannelActive(c channel.HandlerContext) {
 	if err := c.WriteAndFlush("Hello World\r\n"); err != nil {
 		p.log.WithError(err).Warnln("write error")
 	}
-	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InNames(), "->"))
-	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutNames(), "->"))
+	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InboundNames(), "->"))
+	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutboundNames(), "->"))
 }
 
 func (p *EchoClientHandler) ChannelInActive(c channel.HandlerContext) {

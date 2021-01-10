@@ -14,8 +14,8 @@ func NewHeadInboundHandler(pipeline *DefaultPipeline) *HeadInboundHandler {
 	return &HeadInboundHandler{pipeline: pipeline}
 }
 
-func (p *HeadInboundHandler) ErrorCaught(c HandlerContext, err error) {
-	c.FireErrorCaught(err)
+func (p *HeadInboundHandler) OnError(c HandlerContext, err error) {
+	c.FireOnError(err)
 }
 
 func (p *HeadInboundHandler) ChannelActive(c HandlerContext) {
@@ -40,7 +40,7 @@ func NewTailOutboundHandler(pipeline *DefaultPipeline) *TailOutboundHandler {
 	return &TailOutboundHandler{pipeline: pipeline, log: log.WithField("component", "TailOutboundHandler")}
 }
 
-func (p *TailOutboundHandler) ErrorCaught(c HandlerContext, err error) {
+func (p *TailOutboundHandler) OnError(c HandlerContext, err error) {
 	p.log.Warnln("unhandled error.", err)
 }
 
@@ -70,7 +70,7 @@ func NewHeadOutboundHandler(pipeline *DefaultPipeline) *HeadOutboundHandler {
 }
 
 // todo: 触发不到
-func (p *HeadOutboundHandler) ErrorCaught(c HandlerContext, err error) {
+func (p *HeadOutboundHandler) OnError(c HandlerContext, err error) {
 
 }
 

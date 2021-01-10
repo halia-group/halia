@@ -1,7 +1,7 @@
 package channel
 
 type Handler interface {
-	ErrorCaught(c HandlerContext, err error)
+	OnError(c HandlerContext, err error)
 }
 
 type InboundHandler interface {

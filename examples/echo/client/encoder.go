@@ -6,8 +6,8 @@ import (
 
 type StringToByteEncoder struct{}
 
-func (e *StringToByteEncoder) ErrorCaught(c channel.HandlerContext, err error) {
-	c.FireErrorCaught(err)
+func (e *StringToByteEncoder) OnError(c channel.HandlerContext, err error) {
+	c.FireOnError(err)
 }
 
 func (e *StringToByteEncoder) Write(c channel.HandlerContext, msg interface{}) error {

@@ -16,15 +16,15 @@ func NewEchoServerHandler() *EchoServerHandler {
 	}
 }
 
-func (p *EchoServerHandler) ErrorCaught(c channel.HandlerContext, err error) {
+func (p *EchoServerHandler) OnError(c channel.HandlerContext, err error) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Warnln("error caught", err)
 }
 
 func (p *EchoServerHandler) ChannelActive(c channel.HandlerContext) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("connected")
 
-	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InNames(), "->"))
-	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutNames(), "->"))
+	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InboundNames(), "->"))
+	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutboundNames(), "->"))
 }
 
 func (p *EchoServerHandler) ChannelInActive(c channel.HandlerContext) {

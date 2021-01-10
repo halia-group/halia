@@ -8,8 +8,8 @@ import (
 
 type LineDelimiterFrameDecoder struct{}
 
-func (d *LineDelimiterFrameDecoder) ErrorCaught(c channel.HandlerContext, err error) {
-	c.FireErrorCaught(err)
+func (d *LineDelimiterFrameDecoder) OnError(c channel.HandlerContext, err error) {
+	c.FireOnError(err)
 }
 
 func (d *LineDelimiterFrameDecoder) ChannelActive(c channel.HandlerContext) {
@@ -28,7 +28,7 @@ func (d *LineDelimiterFrameDecoder) ChannelRead(c channel.HandlerContext, _ inte
 			return
 		}
 		if err != nil {
-			d.ErrorCaught(c, err)
+			d.OnError(c, err)
 			return
 		}
 		c.FireChannelRead(string(line))
