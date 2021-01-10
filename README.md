@@ -2,9 +2,10 @@
 
 ## todo
 
-+ [ ] 错误处理规范
++ [x] 错误处理规范
 + [ ] pipeline流程优化
++ [ ] handlerAdded支持  
 + [ ] 常用decoder
-    + LineBasedFrameDecoder
-    + FixedLengthFrameDecoder
-    + LengthFieldBasedFrameDecoder
+    + [x] LineBasedFrameDecoder
+    + [x] FixedLengthFrameDecoder
+    + [ ]LengthFieldBasedFrameDecoder

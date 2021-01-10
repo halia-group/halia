@@ -37,11 +37,12 @@ func (p *EchoClientHandler) ChannelInActive(c channel.HandlerContext) {
 }
 
 func (p *EchoClientHandler) ChannelRead(c channel.HandlerContext, msg interface{}) {
-	str, ok := msg.(string)
+	data, ok := msg.([]byte)
 	if !ok {
 		p.log.WithField("peer", c.Channel().RemoteAddr()).Warnf("unknown msg type: %+v", msg)
 		return
 	}
+	str := string(data)
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("receive ", str)
 	time.AfterFunc(time.Second, func() {
 		if err := c.WriteAndFlush(fmt.Sprintf("client say:%s\r\n", time.Now().String())); err != nil {

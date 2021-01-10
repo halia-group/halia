@@ -18,9 +18,9 @@ func main() {
 	client := bootstrap.NewClient(&bootstrap.ClientOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("decoder", codec.NewLineBasedFrameDecoder())
-			c.Pipeline().AddInbound("handler", NewEchoClientHandler())
-			c.Pipeline().AddOutbound("encoder", &StringToByteEncoder{})
+			c.Pipeline().AddInbound("frameDecoder", codec.NewFixedLengthFrameDecoder(8))
+			c.Pipeline().AddInbound("timestampDecoder", newTimestampDecoder())
+			c.Pipeline().AddInbound("handler", NewTimeClientHandler())
 			return c
 		},
 	})

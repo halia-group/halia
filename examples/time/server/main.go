@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"halia/bootstrap"
 	"halia/channel"
-	"halia/handler/codec"
 	"net"
 	"os"
 )
@@ -18,9 +17,8 @@ func main() {
 	s := bootstrap.NewServer(&bootstrap.ServerOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("decoder", codec.NewLineBasedFrameDecoder())
-			c.Pipeline().AddInbound("handler", NewEchoServerHandler())
-			c.Pipeline().AddOutbound("encoder", &StringToByteEncoder{})
+			c.Pipeline().AddInbound("handler", newTimeServerHandler())
+			c.Pipeline().AddOutbound("encoder", &timestampEncoder{})
 			return c
 		},
 	})
