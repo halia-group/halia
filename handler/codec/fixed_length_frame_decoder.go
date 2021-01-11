@@ -7,7 +7,7 @@ import (
 )
 
 type FixedLengthFrameDecoder struct {
-	FrameDecoder
+	Decoder
 	length int
 }
 

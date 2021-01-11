@@ -8,7 +8,7 @@ import (
 )
 
 type timestampDecoder struct {
-	codec.FrameDecoder
+	codec.Decoder
 }
 
 func (d timestampDecoder) ChannelRead(c channel.HandlerContext, msg interface{}) {

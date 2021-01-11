@@ -2,16 +2,16 @@ package codec
 
 import "halia/channel"
 
-type FrameDecoder struct{}
+type Decoder struct{}
 
-func (d FrameDecoder) OnError(c channel.HandlerContext, err error) {
+func (d Decoder) OnError(c channel.HandlerContext, err error) {
 	c.FireOnError(err)
 }
 
-func (d FrameDecoder) ChannelActive(c channel.HandlerContext) {
+func (d Decoder) ChannelActive(c channel.HandlerContext) {
 	c.FireChannelActive()
 }
 
-func (d FrameDecoder) ChannelInActive(c channel.HandlerContext) {
+func (d Decoder) ChannelInActive(c channel.HandlerContext) {
 	c.FireChannelInActive()
 }

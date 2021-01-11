@@ -7,7 +7,7 @@ import (
 )
 
 type LineBasedFrameDecoder struct {
-	FrameDecoder
+	Decoder
 }
 
 func NewLineBasedFrameDecoder() *LineBasedFrameDecoder {
