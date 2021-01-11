@@ -26,6 +26,8 @@ func (p chatClientHandler) ChannelInActive(c channel.HandlerContext) {
 }
 
 func (p chatClientHandler) ChannelRead(c channel.HandlerContext, msg interface{}) {
+	p.log.Infof("receive %s", msg)
+
 	packet := msg.(common.Packet)
 	switch packet.Opcode() {
 	case common.OpPong:
@@ -36,7 +38,6 @@ func (p chatClientHandler) ChannelRead(c channel.HandlerContext, msg interface{}
 }
 
 func (p chatClientHandler) handlePong(c channel.HandlerContext) {
-	p.log.Infoln("PONG")
 	packet := common.NewRegisterReq("xialei", "111111")
 	if err := c.WriteAndFlush(packet); err != nil {
 		p.OnError(c, err)
@@ -44,7 +45,6 @@ func (p chatClientHandler) handlePong(c channel.HandlerContext) {
 }
 
 func (p chatClientHandler) handleRegisterResult(c channel.HandlerContext, result *common.RegisterResult) {
-	p.log.Infof("register result code(%v) message(%v)", result.Code, result.Message)
 }
 
 func newChatClientHandler() *chatClientHandler {

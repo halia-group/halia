@@ -8,13 +8,15 @@ type PingPacket struct {
 	basePacket
 }
 
+func (p *PingPacket) String() string {
+	return "PingPacket{}"
+}
+
 func NewPingPacket() *PingPacket {
 	return &PingPacket{
 		basePacket{
 			MagicNumber: MagicNumber,
 			Opcode:      OpPing,
-			Length:      0,
-			Data:        make([]byte, 0),
 		},
 	}
 }

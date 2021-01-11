@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -9,6 +10,10 @@ type RegisterReq struct {
 	basePacket
 	Username string
 	Password string
+}
+
+func (p *RegisterReq) String() string {
+	return fmt.Sprintf("RegisterReq{Username=%s,Password=%s}", p.Username, p.Password)
 }
 
 func (p *RegisterReq) Opcode() uint16 {
@@ -52,6 +57,9 @@ type RegisterResult struct {
 	Message string
 }
 
+func (p *RegisterResult) String() string {
+	return fmt.Sprintf("RegisterResult{Code=%d,Message=%s}", p.Code, p.Message)
+}
 func NewRegisterResult(code uint8, message string) *RegisterResult {
 	return &RegisterResult{
 		basePacket: basePacket{

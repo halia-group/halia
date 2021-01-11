@@ -8,6 +8,10 @@ type PongPacket struct {
 	basePacket
 }
 
+func (p *PongPacket) String() string {
+	return "PongPacket{}"
+}
+
 func NewPongPacket() *PongPacket {
 	return &PongPacket{
 		basePacket{

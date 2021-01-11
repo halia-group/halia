@@ -31,6 +31,7 @@ func (p chatServerHandler) ChannelInActive(c channel.HandlerContext) {
 }
 
 func (p chatServerHandler) ChannelRead(c channel.HandlerContext, msg interface{}) {
+	p.log.Infof("receive %s", msg)
 	packet := msg.(common.Packet)
 	switch packet.Opcode() {
 	case common.OpPing:
@@ -41,7 +42,6 @@ func (p chatServerHandler) ChannelRead(c channel.HandlerContext, msg interface{}
 }
 
 func (p chatServerHandler) handlePing(c channel.HandlerContext) {
-	p.log.Infoln("receive Ping")
 	if err := c.WriteAndFlush(common.NewPongPacket()); err != nil {
 		p.OnError(c, err)
 	}

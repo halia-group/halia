@@ -21,11 +21,9 @@ func main() {
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
 			c.Pipeline().AddInbound("frameDecoder", codec.NewLengthFieldBasedFrameDecoder(2, 4, binary.BigEndian))
-			c.Pipeline().AddInbound("debugDecoder", codec.NewDebugDecoder())
 			c.Pipeline().AddInbound("packetDecoder", &common.PacketDecoder{})
 			c.Pipeline().AddInbound("handler", newChatServerHandler())
 
-			c.Pipeline().AddOutbound("debugEncoder", codec.NewDebugEncoder())
 			c.Pipeline().AddOutbound("packetEncoder", &common.PacketEncoder{})
 			return c
 		},
