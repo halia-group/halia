@@ -1,8 +1,8 @@
 package channel
 
 import (
-	"halia/channel/channelid"
-	"halia/util"
+	"github.com/halia-group/halia/channel/channelid"
+	"github.com/halia-group/halia/util"
 	"io"
 	"net"
 )

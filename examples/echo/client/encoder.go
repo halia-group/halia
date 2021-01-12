@@ -1,7 +1,7 @@
 package main
 
 import (
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 )
 
 type StringToByteEncoder struct{}

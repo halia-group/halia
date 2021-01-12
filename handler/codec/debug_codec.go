@@ -3,7 +3,7 @@ package codec
 import (
 	"encoding/hex"
 	"fmt"
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 	"os"
 )
 

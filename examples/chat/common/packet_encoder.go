@@ -3,7 +3,7 @@ package common
 import (
 	"bytes"
 	"encoding/binary"
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 )
 
 type PacketEncoder struct{}

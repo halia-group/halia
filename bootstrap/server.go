@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
+	"github.com/halia-group/halia/channel"
 	log "github.com/sirupsen/logrus"
-	"halia/channel"
 	"net"
 	"os"
 )

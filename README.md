@@ -3,7 +3,7 @@
 Halia是一个基于组件化的网络应用框架，用于快速开发可维护的高性能协议服务器和客户端。
 
 ## Links
-+ [文档地址](https://halia-group.github.io/halia/)
++ [文档地址](https://halia-group.github.io/halia-group/halia/)
 
 ## Features
 

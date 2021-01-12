@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/halia-group/halia/bootstrap"
+	"github.com/halia-group/halia/channel"
+	"github.com/halia-group/halia/handler/codec"
 	log "github.com/sirupsen/logrus"
-	"halia/bootstrap"
-	"halia/channel"
-	"halia/handler/codec"
 	"net"
 	"os"
 )

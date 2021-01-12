@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 )
 
 var (

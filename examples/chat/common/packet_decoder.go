@@ -2,8 +2,8 @@ package common
 
 import (
 	"bytes"
-	"halia/channel"
-	"halia/handler/codec"
+	"github.com/halia-group/halia/channel"
+	"github.com/halia-group/halia/handler/codec"
 )
 
 type PacketDecoder struct {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/binary"
-	"halia/channel"
-	"halia/handler/codec"
+	"github.com/halia-group/halia/channel"
+	"github.com/halia-group/halia/handler/codec"
 	"time"
 )
 

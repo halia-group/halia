@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/binary"
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 	"time"
 )
 

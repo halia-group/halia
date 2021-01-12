@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/binary"
+	"github.com/halia-group/halia/bootstrap"
+	"github.com/halia-group/halia/channel"
+	"github.com/halia-group/halia/examples/chat/common"
+	"github.com/halia-group/halia/handler/codec"
 	log "github.com/sirupsen/logrus"
-	"halia/bootstrap"
-	"halia/channel"
-	"halia/examples/chat/common"
-	"halia/handler/codec"
 	"net"
 	"os"
 )

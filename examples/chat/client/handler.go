@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/halia-group/halia/channel"
+	"github.com/halia-group/halia/examples/chat/common"
 	log "github.com/sirupsen/logrus"
-	"halia/channel"
-	"halia/examples/chat/common"
 )
 
 type chatClientHandler struct {

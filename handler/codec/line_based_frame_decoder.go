@@ -2,7 +2,7 @@ package codec
 
 import (
 	"bufio"
-	"halia/channel"
+	"github.com/halia-group/halia/channel"
 	"io"
 )
 

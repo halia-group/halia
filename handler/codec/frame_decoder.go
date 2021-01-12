@@ -1,6 +1,6 @@
 package codec
 
-import "halia/channel"
+import "github.com/halia-group/halia/channel"
 
 type Decoder struct{}
 
