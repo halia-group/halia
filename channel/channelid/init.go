@@ -14,7 +14,6 @@ var (
 func init() {
 	once.Do(func() {
 		loadMachineId()
-		logger.WithField("machineId", hex.EncodeToString(machineId)).WithField("pid", processId).Infoln("initialized")
 	})
 }
 

@@ -58,10 +58,10 @@ func (c *DefaultHandlerContext) Flush() error {
 	}
 
 	var (
-		prev    = c.findNextContext()
-		handler = prev.Handler().(OutboundHandler)
+		next    = c.findNextContext()
+		handler = next.Handler().(OutboundHandler)
 	)
-	return handler.Flush(prev)
+	return handler.Flush(next)
 }
 
 func (c *DefaultHandlerContext) WriteAndFlush(msg interface{}) error {
@@ -70,13 +70,13 @@ func (c *DefaultHandlerContext) WriteAndFlush(msg interface{}) error {
 	}
 
 	var (
-		prev    = c.findNextContext()
-		handler = prev.Handler().(OutboundHandler)
+		next    = c.findNextContext()
+		handler = next.Handler().(OutboundHandler)
 	)
-	if err := handler.Write(prev, msg); err != nil {
+	if err := handler.Write(next, msg); err != nil {
 		return err
 	}
-	return handler.Flush(prev)
+	return handler.Flush(next)
 }
 
 func (c *DefaultHandlerContext) Channel() Channel {

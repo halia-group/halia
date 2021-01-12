@@ -5,7 +5,6 @@ import (
 	"reflect"
 )
 
-// 第一个入站处理器，直接调用下一个即可
 type HeadInboundHandler struct {
 	pipeline *DefaultPipeline
 }
@@ -30,7 +29,6 @@ func (p *HeadInboundHandler) ChannelRead(c HandlerContext, msg interface{}) {
 	c.FireChannelRead(msg)
 }
 
-// 最后一个出站处理器
 type TailOutboundHandler struct {
 	pipeline *DefaultPipeline
 	log      *log.Entry
@@ -60,7 +58,6 @@ func (p *TailOutboundHandler) Flush(c HandlerContext) error {
 	return c.Channel().Flush()
 }
 
-// 第一个出站处理器，占位用
 type HeadOutboundHandler struct {
 	pipeline *DefaultPipeline
 }
@@ -69,7 +66,6 @@ func NewHeadOutboundHandler(pipeline *DefaultPipeline) *HeadOutboundHandler {
 	return &HeadOutboundHandler{pipeline: pipeline}
 }
 
-// todo: 触发不到
 func (p *HeadOutboundHandler) OnError(c HandlerContext, err error) {
 
 }
