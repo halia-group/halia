@@ -1,4 +1,4 @@
-module halia
+module github.com/halia-group/halia
 
 go 1.15
 
