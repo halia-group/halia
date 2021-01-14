@@ -27,4 +27,4 @@ Halia是一个基于组件化的网络应用框架，用于快速开发可维护
 
 + [Echo](examples/echo)，回显服务器，基于LineBasedFrameDecoder实现
 + [Time](examples/time)，时间服务器，基于FixedLengthFrameDecoder实现，报文固定为8字节长度时间戳
-+ [Chat](examples/chat)，聊天服务器，基于LengthFieldBasedFrameDecoder实现
++ [Chat](https://github.com/halia-group/halia-chat)，聊天服务器，基于LengthFieldBasedFrameDecoder实现，低耦合/高扩展性，扩展数据包只需要注册到`PacketFactory`和`ProcessorFactory`即可。
