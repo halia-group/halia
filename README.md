@@ -23,6 +23,10 @@ Halia是一个基于组件化的网络应用框架，用于快速开发可维护
 + LengthFieldBasedFrameDecoder: 基于长度字段的变长报文解码器
 + LineBasedFrameDecoder: 基于换行符的报文解码器
 
+## 内置协议编解码器
+
++ Http协议
+
 ## 示例
 
 + [Echo](examples/echo)，回显服务器，基于LineBasedFrameDecoder实现
