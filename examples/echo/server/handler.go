@@ -42,7 +42,7 @@ func (p *EchoServerHandler) ChannelRead(c channel.HandlerContext, msg interface{
 	}
 	str := string(data)
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("receive ", str)
-	if err := c.Write("server:" + str + "\r\n"); err != nil {
+	if err := c.WriteAndFlush("server:" + str + "\r\n"); err != nil {
 		p.log.WithField("peer", c.Channel().RemoteAddr()).WithError(err).Warnln("write error")
 	}
 }
