@@ -18,9 +18,9 @@ func main() {
 	s := bootstrap.NewServer(&bootstrap.ServerOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("decoder", &http.RequestDecoder{})
-			c.Pipeline().AddInbound("handler", newHandler())
-			c.Pipeline().AddOutbound("encoder", &http.ResponseEncoder{})
+			c.Pipeline().AddLast("decoder", &http.RequestDecoder{})
+			c.Pipeline().AddLast("encoder", &http.ResponseEncoder{})
+			c.Pipeline().AddLast("handler", newHandler())
 			return c
 		},
 	})

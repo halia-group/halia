@@ -6,6 +6,7 @@ type AttributeMap interface {
 	HasAttribute(key string) bool
 	GetStringAttribute(key string) string
 	GetBoolAttribute(key string) bool
+	GetIntAttribute(key string) int
 }
 
 type DefaultAttributeMap struct {
@@ -50,4 +51,14 @@ func (m *DefaultAttributeMap) GetBoolAttribute(key string) bool {
 		return false
 	}
 	return val.(bool)
+}
+
+func (m *DefaultAttributeMap) GetIntAttribute(key string) int {
+	m.initialize()
+
+	val := m.attrs[key]
+	if val == nil {
+		return 0
+	}
+	return val.(int)
 }

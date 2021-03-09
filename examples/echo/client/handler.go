@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/halia-group/halia/channel"
 	log "github.com/sirupsen/logrus"
-	"strings"
 	"time"
 )
 
@@ -25,11 +24,10 @@ func (p *EchoClientHandler) OnError(c channel.HandlerContext, err error) {
 func (p *EchoClientHandler) ChannelActive(c channel.HandlerContext) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("connected")
 
+	p.log.Infoln("pipeline", c.Pipeline().Names())
 	if err := c.WriteAndFlush("Hello World\r\n"); err != nil {
 		p.log.WithError(err).Warnln("write error")
 	}
-	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InboundNames(), "->"))
-	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutboundNames(), "->"))
 }
 
 func (p *EchoClientHandler) ChannelInActive(c channel.HandlerContext) {

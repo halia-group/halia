@@ -23,20 +23,19 @@ func (p PacketEncoder) Write(c channel.HandlerContext, msg interface{}) error {
 		opcode = packet.Opcode()
 		length = uint16(len(body))
 	)
-	buf = bytes.Buffer{}
-	if err := binary.Write(&buf, binary.BigEndian, &MagicNumber); err != nil {
+	if err := binary.Write(c.Channel(), binary.BigEndian, &MagicNumber); err != nil {
 		return err
 	}
-	if err := binary.Write(&buf, binary.BigEndian, &opcode); err != nil {
+	if err := binary.Write(c.Channel(), binary.BigEndian, &opcode); err != nil {
 		return err
 	}
-	if err := binary.Write(&buf, binary.BigEndian, &length); err != nil {
+	if err := binary.Write(c.Channel(), binary.BigEndian, &length); err != nil {
 		return err
 	}
-	if err := binary.Write(&buf, binary.BigEndian, &body); err != nil {
+	if err := binary.Write(c.Channel(), binary.BigEndian, &body); err != nil {
 		return err
 	}
-	return c.Write(buf.Bytes())
+	return c.Flush()
 }
 
 func (p PacketEncoder) Flush(c channel.HandlerContext) error {

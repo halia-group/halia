@@ -2,9 +2,7 @@ package bootstrap
 
 import (
 	"github.com/halia-group/halia/channel"
-	log "github.com/sirupsen/logrus"
 	"net"
-	"os"
 )
 
 type ServerOptions struct {
@@ -14,11 +12,10 @@ type ServerOptions struct {
 type Server struct {
 	listener net.Listener
 	options  *ServerOptions
-	log      *log.Entry
 }
 
 func NewServer(options *ServerOptions) *Server {
-	return &Server{options: options, log: log.WithField("component", "server").WithField("pid", os.Getpid())}
+	return &Server{options: options}
 }
 
 func (server *Server) Listen(network, addr string) error {
@@ -27,7 +24,6 @@ func (server *Server) Listen(network, addr string) error {
 	if err != nil {
 		return err
 	}
-	server.log.WithField("network", network).WithField("addr", addr).Infoln("started")
 	for {
 		conn, err := server.listener.Accept()
 		if err != nil {
