@@ -20,11 +20,11 @@ func main() {
 	s := bootstrap.NewServer(&bootstrap.ServerOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("frameDecoder", codec.NewLengthFieldBasedFrameDecoder(2, 4, binary.BigEndian))
-			c.Pipeline().AddInbound("packetDecoder", &common.PacketDecoder{})
-			c.Pipeline().AddInbound("handler", newChatServerHandler())
+			c.Pipeline().AddLast("frameDecoder", codec.NewLengthFieldBasedFrameDecoder(2, 4, binary.BigEndian))
+			c.Pipeline().AddLast("packetDecoder", &common.PacketDecoder{})
+			c.Pipeline().AddLast("packetEncoder", &common.PacketEncoder{})
+			c.Pipeline().AddLast("handler", newChatServerHandler())
 
-			c.Pipeline().AddOutbound("packetEncoder", &common.PacketEncoder{})
 			return c
 		},
 	})

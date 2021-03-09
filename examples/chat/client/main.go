@@ -20,11 +20,11 @@ func main() {
 	client := bootstrap.NewClient(&bootstrap.ClientOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("frameDecoder", codec.NewLengthFieldBasedFrameDecoder(2, 4, binary.BigEndian))
-			c.Pipeline().AddInbound("packetDecoder", &common.PacketDecoder{})
-			c.Pipeline().AddInbound("handler", newChatClientHandler())
+			c.Pipeline().AddLast("frameDecoder", codec.NewLengthFieldBasedFrameDecoder(2, 4, binary.BigEndian))
+			c.Pipeline().AddLast("packetDecoder", &common.PacketDecoder{})
+			c.Pipeline().AddLast("packetEncoder", &common.PacketEncoder{})
+			c.Pipeline().AddLast("handler", newChatClientHandler())
 
-			c.Pipeline().AddOutbound("packetEncoder", &common.PacketEncoder{})
 			return c
 		},
 	})

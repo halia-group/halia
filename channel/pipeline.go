@@ -1,120 +1,175 @@
 package channel
 
+import (
+	"errors"
+	log "github.com/sirupsen/logrus"
+)
+
 type Pipeline interface {
 	InboundInvoker
 	OutboundInvoker
 
-	AddInbound(name string, handler Handler)
-	AddOutbound(name string, handler Handler)
+	AddFirst(name string, handler Handler)
+	AddLast(name string, handler Handler)
 	Channel() Channel
-	InboundNames() []string
-	OutboundNames() []string
+	Names() []string
 }
 
-type DefaultPipeline struct {
-	inbound  *DefaultHandlerContext // 入站链
-	outbound *DefaultHandlerContext // 出站链
-	channel  Channel
+type defaultPipeline struct {
+	head    *defaultHandlerContext
+	tail    *defaultHandlerContext
+	channel Channel
 }
 
-func NewDefaultPipeline(channel Channel) *DefaultPipeline {
-	p := &DefaultPipeline{
+func NewDefaultPipeline(channel Channel) *defaultPipeline {
+	pipeline := &defaultPipeline{
 		channel: channel,
 	}
-	p.inbound = &DefaultHandlerContext{
-		pipeline: p,
-		name:     "InHeadContext",
-		handler:  NewHeadInboundHandler(p),
+	headCtx := &defaultHandlerContext{
+		pipeline: pipeline,
+		name:     "head",
+		handler:  &headHandler{},
 	}
-	outTailCtx := &DefaultHandlerContext{
-		pipeline: p,
-		name:     "OutTailContext",
-		handler:  NewTailOutboundHandler(p),
+	tailCtx := &defaultHandlerContext{
+		pipeline: pipeline,
+		name:     "tail",
+		handler:  &tailHandler{},
 	}
-	outHeadCtx := &DefaultHandlerContext{
-		next:     outTailCtx,
-		pipeline: p,
-		name:     "OutHeadContext",
-		handler:  NewHeadOutboundHandler(p),
-	}
-	p.outbound = outHeadCtx
-	return p
+	headCtx.next = tailCtx
+	tailCtx.prev = headCtx
+
+	pipeline.head = headCtx
+	pipeline.tail = tailCtx
+	return pipeline
 }
 
-func (p *DefaultPipeline) FireChannelActive() {
-	p.inbound.FireChannelActive()
+func (p *defaultPipeline) FireChannelActive() {
+	p.head.FireChannelActive()
 }
 
-func (p *DefaultPipeline) FireChannelInActive() {
-	p.inbound.FireChannelInActive()
+func (p *defaultPipeline) FireChannelInActive() {
+	p.head.FireChannelInActive()
 }
 
-func (p *DefaultPipeline) FireChannelRead(msg interface{}) {
-	p.inbound.FireChannelRead(msg)
+func (p *defaultPipeline) FireChannelRead(msg interface{}) {
+	p.head.FireChannelRead(msg)
 }
 
-func (p *DefaultPipeline) FireOnError(err error) {
-	p.inbound.FireOnError(err)
+func (p *defaultPipeline) FireOnError(err error) {
+	p.head.FireOnError(err)
 }
 
-func (p *DefaultPipeline) Write(msg interface{}) error {
-	return p.outbound.Write(msg)
+func (p *defaultPipeline) Write(msg interface{}) error {
+	return p.tail.Write(msg)
 }
 
-func (p *DefaultPipeline) Flush() error {
-	return p.outbound.Flush()
+func (p *defaultPipeline) Flush() error {
+	return p.tail.Flush()
 }
 
-func (p *DefaultPipeline) WriteAndFlush(msg interface{}) error {
-	return p.outbound.WriteAndFlush(msg)
+func (p *defaultPipeline) WriteAndFlush(msg interface{}) error {
+	return p.tail.WriteAndFlush(msg)
 }
 
-// 插入到入站链末尾
-func (p *DefaultPipeline) AddInbound(name string, handler Handler) {
-	newCtx := &DefaultHandlerContext{
+func (p *defaultPipeline) AddFirst(name string, handler Handler) {
+	newCtx := &defaultHandlerContext{
 		pipeline: p,
 		name:     name,
 		handler:  handler,
 	}
-	currentCtx := p.inbound
-	for currentCtx.next != nil {
-		currentCtx = currentCtx.next
-	}
-	currentCtx.next = newCtx
+	currentNext := p.head.next
+	// connect currentNext and newCtx
+	newCtx.next = currentNext
+	currentNext.prev = newCtx
+	// connect head and newCtx
+	p.head.next = newCtx
+	newCtx.prev = p.head
 }
 
-// 插入到出站链头部
-// 头节点必须是DefaultOutboundHandler, 尾结点必须是TailOutboundHandler
-func (p *DefaultPipeline) AddOutbound(name string, handler Handler) {
-	newCtx := &DefaultHandlerContext{
+func (p *defaultPipeline) AddLast(name string, handler Handler) {
+	newCtx := &defaultHandlerContext{
 		pipeline: p,
 		name:     name,
 		handler:  handler,
 	}
-	newCtx.next = p.outbound.next
-	p.outbound.next = newCtx
+	currentPrev := p.tail.prev
+	// connect currentPrev and newCtx
+	newCtx.prev = currentPrev
+	currentPrev.next = newCtx
+	// connect tail and newCtx
+	p.tail.prev = newCtx
+	newCtx.next = p.tail
 }
 
-func (p *DefaultPipeline) Channel() Channel {
+func (p *defaultPipeline) Names() []string {
+	result := make([]string, 0)
+	cursor := p.head
+	for cursor != nil {
+		result = append(result, cursor.name)
+		cursor = cursor.next
+	}
+	return result
+}
+
+func (p *defaultPipeline) Channel() Channel {
 	return p.channel
 }
 
-func (p *DefaultPipeline) InboundNames() []string {
-	ptr := p.inbound
-	names := make([]string, 0)
-	for ptr != nil {
-		names = append(names, ptr.name)
-		ptr = ptr.next
+type headHandler struct{}
+
+func (p headHandler) Write(c HandlerContext, msg interface{}) error {
+	switch data := msg.(type) {
+	case []byte:
+		_, err := c.Channel().Write(data)
+		return err
+	default:
+		return errors.New("write wrong msg type to head")
 	}
-	return names
 }
 
-func (p *DefaultPipeline) OutboundNames() []string {
-	ptr := p.outbound
-	names := make([]string, 0)
-	for ptr != nil {
-		names = append(names, ptr.name)
-		ptr = ptr.next
-	}
-	return names
+func (p headHandler) Flush(c HandlerContext) error {
+	return c.Channel().Flush()
+}
+
+func (p headHandler) OnError(c HandlerContext, err error) {
+	c.FireOnError(err)
+}
+
+func (p headHandler) ChannelActive(c HandlerContext) {
+	c.FireChannelActive()
+}
+
+func (p headHandler) ChannelInActive(c HandlerContext) {
+	c.FireChannelInActive()
+}
+
+func (p headHandler) ChannelRead(c HandlerContext, msg interface{}) {
+	c.FireChannelRead(msg)
+}
+
+type tailHandler struct{}
+
+func (p tailHandler) ChannelActive(c HandlerContext) {
+
+}
+
+func (p tailHandler) ChannelInActive(c HandlerContext) {
+}
+
+func (p tailHandler) ChannelRead(c HandlerContext, _ interface{}) {
+	log.WithField("component", "TailHandler").Debug("unhandled message that reached at the tail of the pipeline")
+}
+
+func (p tailHandler) OnError(c HandlerContext, err error) {
+	log.WithField("component", "TailHandler").Debugf("unhandled error(%v) that reached at the tail of the pipeline", err)
+}
+
+func (p tailHandler) Write(c HandlerContext, msg interface{}) error {
+	log.WithField("component", "TailHandler").Debug("unhandled write that reached at the tail of the pipeline")
+	return nil
+}
+
+func (p tailHandler) Flush(c HandlerContext) error {
+	log.WithField("component", "TailHandler").Debug("unhandled flush that reached at the tail of the pipeline")
+	return nil
 }

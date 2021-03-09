@@ -17,8 +17,8 @@ func main() {
 	s := bootstrap.NewServer(&bootstrap.ServerOptions{
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-			c.Pipeline().AddInbound("handler", newTimeServerHandler())
-			c.Pipeline().AddOutbound("encoder", &timestampEncoder{})
+			c.Pipeline().AddFirst("handler", newTimeServerHandler())
+			c.Pipeline().AddLast("encoder", &timestampEncoder{})
 			return c
 		},
 	})
