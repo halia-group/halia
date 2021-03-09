@@ -13,8 +13,13 @@ Halia是一个基于组件化的网络应用框架，用于快速开发可维护
 
 ## 数据流
 
-+ 入站数据流: HeadInboundHandler -> inboundHandler1 -> inboundHandlerN
-+ 出站数据流: inboundHandlerN.Write -> HeadOutboundHandler -> outboundHandler1 -> outboundHandlerN -> TailOutboundHandler
+```
+-------------------------------------------
+        -> handler1 -> ... handlerN -> 
+head                                    tail    
+        <- handler1 <- ... handlerN <-       
+--------------------------------------------
+```
 
 ## 内置解码器
 
