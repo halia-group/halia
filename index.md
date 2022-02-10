@@ -1,8 +1,17 @@
 # Halia
 
-Halia是一个基于组件化的网络应用框架，用于快速开发可维护的高性能协议服务器和客户端。
+Halia is a component-based network application framework for rapid development of maintainable high-performance servers
+and clients.
 
-## 链接
-+ [基础概念](basic.md)
-+ [Echo服务器](echo.md)
+Reference netty to implementation. [Netty](https://netty.io/)
+
+## English
+
++ [Basic Concept](en/basic.md)
++ [Echo Example](en/echo.md)
+
+## 中文文档
+
++ [基础概念](cn/basic.md)
++ [Echo服务器](cn/echo.md)
 

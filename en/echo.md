@@ -1,18 +1,23 @@
 # Halia
 
-Halia是一个基于组件化的网络应用框架，用于快速开发可维护的高性能协议服务器和客户端。
+Halia is a component-based network application framework for rapid development of maintainable high-performance servers
+and clients.
 
-## 快速开始
+Reference netty to implementation. [Netty](https://netty.io/)
 
-本示例将演示如何开发一个时间回显服务器。
+[toc]
 
-客户端每隔1秒发送时间字符串给服务器，服务器回显该数据。
+## Get Started
 
-### 公用代码
+This example will demonstrate how to develop a time echo server.
+
+Client sends a local time string to server every 1 second, and the server echoes the data.
+
+### Public Code
 
 #### encoder.go
 
-字符串编码器，将字符串转换为`[]byte`传输到下一个出站处理器
+The String-Encoder, converts `string` to `[]byte` and then transfers to the next outbound processor.
 
 ```go
 package main
@@ -22,13 +27,15 @@ import (
 )
 
 type StringToByteEncoder struct{}
-// 编码器不处理处理，交由下一个处理器(也就是业务处理器)处理
+
+// The encoder doesn't process error ，transfers to the next processor (the business processor) for processing
 func (e *StringToByteEncoder) OnError(c channel.HandlerContext, err error) {
 	c.FireOnError(err)
 }
 
 func (e *StringToByteEncoder) Write(c channel.HandlerContext, msg interface{}) error {
-	if str, ok := msg.(string); ok { // string才转换
+	// if msg is string, we do convert and transfer to next processor.
+	if str, ok := msg.(string); ok { 
 		return c.Write([]byte(str))
 	}
 	return c.Write(msg)
@@ -39,11 +46,9 @@ func (e *StringToByteEncoder) Flush(c channel.HandlerContext) error {
 }
 ```
 
-### 客户端代码
+### Client Code
 
 #### handler.go
-
-客户端业务处理代码。
 
 ```go
 package main
@@ -65,11 +70,13 @@ func NewEchoClientHandler() *EchoClientHandler {
 		log: log.WithField("component", "EchoClientHandler"),
 	}
 }
-// 发送错误回调
+
+// This callback is called when an error occurred.
 func (p *EchoClientHandler) OnError(c channel.HandlerContext, err error) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Warnln("error caught", err)
 }
-// 连接已建立
+
+// This callback is called when connection has been established.
 func (p *EchoClientHandler) ChannelActive(c channel.HandlerContext) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("connected")
 
@@ -79,12 +86,12 @@ func (p *EchoClientHandler) ChannelActive(c channel.HandlerContext) {
 	p.log.Infof("pipeline in: %v", c.Pipeline().Names())
 }
 
-// 连接已断开
+// This callback is called when connection has been closed.
 func (p *EchoClientHandler) ChannelInActive(c channel.HandlerContext) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("disconnected")
 }
 
-// 读取到完整的消息回调
+// This callback is called when we read a complete message.
 func (p *EchoClientHandler) ChannelRead(c channel.HandlerContext, msg interface{}) {
 	data, ok := msg.([]byte)
 	if !ok {
@@ -93,7 +100,7 @@ func (p *EchoClientHandler) ChannelRead(c channel.HandlerContext, msg interface{
 	}
 	str := string(data)
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("receive ", str)
-    // 1秒后发送数据给服务器
+	// after 1 second, we send data to server
 	time.AfterFunc(time.Second, func() {
 		if err := c.WriteAndFlush(fmt.Sprintf("client say:%s\r\n", time.Now().String())); err != nil {
 			p.log.WithError(err).Warnln("write error")
@@ -123,24 +130,25 @@ func init() {
 
 func main() {
 	client := bootstrap.NewClient(&bootstrap.ClientOptions{
-        // 将原始net.Conn包装为Channel实现，一般情况下用DefaultChannel即可
+		// 将原始net.Conn包装为Channel实现，一般情况下用DefaultChannel即可
+		// Wrap the raw `net.Conn` to `Channel`, generally, you can use the `DefaultChannel`.
 		ChannelFactory: func(conn net.Conn) channel.Channel {
 			c := channel.NewDefaultChannel(conn)
-            // 添加解码器，换行符分割报文解码器
+			// add decoder
 			c.Pipeline().AddLast("decoder", codec.NewLineBasedFrameDecoder())
-            // 添加编码器
+			// add encoder
 			c.Pipeline().AddLast("encoder", &StringToByteEncoder{})
-			// 添加业务处理器
+			// add business processor
 			c.Pipeline().AddLast("handler", NewEchoClientHandler())
 			return c
 		},
 	})
-	// 连接服务器
+	// connect server
 	log.WithField("component", "client").Fatal(client.Dial("tcp", "127.0.0.1:8080"))
 }
 ```
 
-### 服务端代码
+### Server Code
 
 #### handler.go
 
@@ -226,11 +234,11 @@ func main() {
 }
 ```
 
-### 运行
+### Run
 
-先运行服务端，再运行客户端。
+Run the server first, then run the client
 
-服务端输出
+**Server Output**
 
 ```text
 time="2021-01-12T11:30:13+08:00" level=info msg=started addr="0.0.0.0:8080" component=server network=tcp pid=7584
@@ -245,7 +253,7 @@ time="2021-01-12T11:30:21+08:00" level=info msg="receive  client say:2021-01-12 
 time="2021-01-12T11:30:22+08:00" level=info msg="receive  client say:2021-01-12 11:30:22.5459978 +0800 CST m=+4.073154501" component=EchoServerHandler peer="127.0.0.1:57641"
 ```
 
-客户端输出
+**Client Output**
 
 ```
 time="2021-01-12T11:30:18+08:00" level=info msg=connected component=EchoClientHandler peer="127.0.0.1:8080"
@@ -258,9 +266,3 @@ time="2021-01-12T11:30:20+08:00" level=info msg="receive  server:client say:2021
 time="2021-01-12T11:30:21+08:00" level=info msg="receive  server:client say:2021-01-12 11:30:21.5345887 +0800 CST m=+3.061745401" component=EchoClientHandler peer="127.0.0.1:8080"
 time="2021-01-12T11:30:22+08:00" level=info msg="receive  server:client say:2021-01-12 11:30:22.5459978 +0800 CST m=+4.073154501" component=EchoClientHandler peer="127.0.0.1:8080"
 ```
-
-
-
-
-
-``
