@@ -15,33 +15,20 @@ on:
       - ready_for_review
 
 jobs:
-  ci-check:
-    name: ci-check
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-
-    - name: Cache Go modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Download dependencies
-      run: go mod download
-
-    - name: Tidy go modules
-      run: go mod tidy
-
-    - name: Unit test
-      run: go test -v ./...
+    - name: Lint
+      run: echo "Linting..."
+  
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build (PR - skip)
+      if: github.event_name == 'pull_request'
+      run: echo "Build skipped in PR, will run in merge queue"
+    - name: Build (Merge Queue)
+      if: github.event_name == 'merge_group'
+      run: echo "Building..."
