@@ -27,10 +27,11 @@
 package main
 
 import (
-	"github.com/halia-group/halia/channel"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	"github.com/halia-group/halia/channel"
+	log "github.com/sirupsen/logrus"
 )
 
 type timeClientHandler struct {
@@ -48,8 +49,8 @@ func (p timeClientHandler) OnError(c channel.HandlerContext, err error) {
 func (p timeClientHandler) ChannelActive(c channel.HandlerContext) {
 	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("connected")
 
-	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InboundNames(), "->"))
-	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutboundNames(), "->"))
+	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().Names(), "->"))
+	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().Names(), "->"))
 }
 
 func (p timeClientHandler) ChannelInActive(c channel.HandlerContext) {

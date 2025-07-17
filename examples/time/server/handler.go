@@ -27,11 +27,11 @@
 package main
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/halia-group/halia/channel"
 	log "github.com/sirupsen/logrus"
-	"reflect"
-	"strings"
-	"time"
 )
 
 type timeServerHandler struct {
@@ -49,9 +49,6 @@ func (p *timeServerHandler) OnError(c channel.HandlerContext, err error) {
 }
 
 func (p *timeServerHandler) ChannelActive(c channel.HandlerContext) {
-	p.log.WithField("peer", c.Channel().RemoteAddr()).Infoln("connected")
-	p.log.Infof("pipeline in: %v", strings.Join(c.Pipeline().InboundNames(), "->"))
-	p.log.Infof("pipeline out: %v", strings.Join(c.Pipeline().OutboundNames(), "->"))
 
 	p.ticker = time.NewTicker(time.Second)
 	for range p.ticker.C {
